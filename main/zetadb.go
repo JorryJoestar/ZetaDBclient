@@ -40,7 +40,7 @@ func main() {
 		//socket read & write data
 		_, err = conn.Write(sqlBytes)
 		checkError(err)
-		buffer := make([]byte, 256)
+		buffer := make([]byte, 16384)
 		_, err = conn.Read(buffer)
 		checkError(err)
 		fmt.Println(string(buffer))

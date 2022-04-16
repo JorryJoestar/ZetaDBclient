@@ -1,12 +1,34 @@
 package main
 
 type Request struct {
+	UserId int32
+	Sql    string
 }
 
-func NewRequest() {}
+func NewRequest(userId int32, sql string) *Request {
+	return &Request{
+		UserId: userId,
+		Sql:    sql,
+	}
+}
 
-func NewRequestFromString() {}
+func NewRequestFromBytes(requestBytes []byte) *Request {
+	userId, _ := BytesToINT(requestBytes[:4])
 
-func (request *Request) RequestToString() {
+	requestBytes = requestBytes[4:]
+	sql := string(requestBytes)
 
+	return NewRequest(userId, sql)
+}
+
+func (request *Request) RequestToBytes() []byte {
+	var bytes []byte
+
+	//convert userId to bytes
+	bytes = append(bytes, INTToBytes(request.UserId)...)
+
+	//convert sql to bytes
+	bytes = append(bytes, []byte(request.Sql)...)
+
+	return bytes
 }

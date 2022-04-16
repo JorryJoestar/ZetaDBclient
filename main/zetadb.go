@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -20,12 +21,17 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	//variable to store current userId, -1 as initial value
-	var currentId int32 = -1
+	var currentUserId int32 = -1
+	var currentUserName string = ""
 
 	fmt.Println("log in or create a new user")
 
 	for { //loop until quit is inserted
-		fmt.Print("zetaDB> ")
+		if currentUserName == "" {
+			fmt.Print("zetaDB> ")
+		} else {
+			fmt.Print("zetaDB@" + currentUserName + "> ")
+		}
 
 		//read sql from user
 		sqlBytes, _, err := reader.ReadLine()
@@ -48,7 +54,7 @@ func main() {
 		checkError(err)
 
 		//create a new request
-		currentRequest := NewRequest(currentId, sql)
+		currentRequest := NewRequest(currentUserId, sql)
 		currentRequestBytes := currentRequest.RequestToBytes()
 
 		//socket write
@@ -62,11 +68,23 @@ func main() {
 		currentResponse := NewResponseFromBytes(buffer)
 
 		//show response info
-		fmt.Println(currentResponse.Message)
-		fmt.Println(currentResponse.StateCode)
+		if currentResponse.StateCode == 1 {
+			logResponseMessages := strings.Split(currentResponse.Message, " ")
+			currentUserIdINT, _ := strconv.Atoi(logResponseMessages[0])
+			currentUserId = int32(currentUserIdINT)
+			currentUserName = logResponseMessages[1]
+			fmt.Println("log in successfully")
+		} else {
+			fmt.Println(currentResponse.Message)
+		}
 
 		// close connection
 		conn.Close()
+
+		//if system is stoped manually, exit this client
+		if currentResponse.StateCode == -2 {
+			os.Exit(0)
+		}
 	}
 
 }

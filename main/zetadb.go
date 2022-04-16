@@ -28,9 +28,9 @@ func main() {
 
 	for { //loop until quit is inserted
 		if currentUserName == "" {
-			fmt.Print("zetaDB> ")
+			fmt.Print("ZetaDB> ")
 		} else {
-			fmt.Print("zetaDB@" + currentUserName + "> ")
+			fmt.Print("ZetaDB @" + currentUserName + " > ")
 		}
 
 		//read sql from user

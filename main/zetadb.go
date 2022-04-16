@@ -19,6 +19,9 @@ func main() {
 	//create a reader to read input
 	reader := bufio.NewReader(os.Stdin)
 
+	//variable to store current userId, -1 as initial value
+	var currentId int32 = -1
+
 	fmt.Println("log in or create a new user")
 
 	for { //loop until quit is inserted
@@ -31,6 +34,7 @@ func main() {
 		}
 		checkError(err)
 
+		//if user input is quit; exit immediately
 		sql := string(sqlBytes)
 		if strings.EqualFold(sql, "quit;") {
 			os.Exit(0)
@@ -43,14 +47,23 @@ func main() {
 		conn, err := net.DialTCP("tcp", nil, tcp_addr)
 		checkError(err)
 
-		//socket read & write data
-		_, err = conn.Write(sqlBytes)
+		//create a new request
+		currentRequest := NewRequest(currentId, sql)
+		currentRequestBytes := currentRequest.RequestToBytes()
+
+		//socket write
+		_, err = conn.Write(currentRequestBytes)
 		checkError(err)
+
+		//socket read
 		buffer := make([]byte, 16384)
 		_, err = conn.Read(buffer)
 		checkError(err)
-		replyString := string(buffer)
-		fmt.Println(string(replyString))
+		currentResponse := NewResponseFromBytes(buffer)
+
+		//show response info
+		fmt.Println(currentResponse.Message)
+		fmt.Println(currentResponse.StateCode)
 
 		// close connection
 		conn.Close()
@@ -64,4 +77,3 @@ func checkError(err error) {
 		os.Exit(1)
 	}
 }
-
